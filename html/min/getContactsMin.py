@@ -2,7 +2,7 @@ import sys
 import re
 import time
 from urllib2 import Request, urlopen
-from urllib2 import URLError
+from urllib2 import HTTPError
 from bs4 import BeautifulSoup
 
 def main():
@@ -50,21 +50,30 @@ def main():
             if(url.find('listing.asp?agency_subtype=dept') is not -1):
                 if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
                     div = link.string
-                    req = Request(base_url+url.replace('listing', 'listing_expand'))
+
+
+                    #get html docs
+                    req_norm = Request(base_url+url)
+                    req_expand = Request(base_url+url.replace('listing', 'listing_expand'))
 
                     try:
-                        response = urlopen(req)
-                    except URLError as e:
-                        #not found
-                        if hasattr(e, 'reason'):
-                            response = urlopen(Request(base_url+url))
-                        elif hasattr(e, 'code'):
-                            #not found
-                            if e.code == 404:
-                                response = urlopen(Request(base_url+url))
-                            #missing
-                            elif e.code == 417:
-                                response = None
+                        response_norm = urlopen(req_norm)
+                    #normal is missing
+                    except HTTPError as e:
+                        if e.code == 417 or e.code == 404:
+                            response = None
+                        
+                    #normal is okay
+                    else:
+                        try:
+                            response_expand = urlopen(req_expand)
+                        #expand is missing
+                        except HTTPError as e:
+                            if e.code == 417 or e.code == 404:
+                                response = response_norm
+                        else:
+                            response = response_expand
+
 
                     
                     #missing
