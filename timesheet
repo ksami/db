@@ -1,4 +1,5 @@
 date, start, end, break, hours worked, nature of work
 150911, 1600, 1900, 0, 3, analyse site
 150919, 1500, 1700, 0, 2, analyse html
-150920, 1430, 
+150920, 1430, 1730, 0, 3, analyse html
+150920, 2200

@@ -1,7 +1,7 @@
 *.docx
 *.doc
 docs
-html
+*.html
 data/links_*.txt
 data/names_*.txt
 
