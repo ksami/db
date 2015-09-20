@@ -29,10 +29,19 @@ soup = BeautifulSoup(html_doc.read(), 'html.parser')
 #print soup.find_all('table')
 #print soup.body.table.tr.td.next_sibling.table.tr.next_sibling.td.table.tr.td.font.table.tr.td.table.next_sibling.tr.contents
 
-print len(soup.find_all(has_name))
-for link in soup.find_all(has_name):
-    print link
-    print '\n========\n\n'
+# print len(soup.find_all(has_name))
+# for link in soup.find_all(has_name):
+#     print link
+#     print '\n========\n\n'
+
+# get depts/divisions links
+for link in soup.find_all('a'):
+    if(link.get('href') is not None):
+        url = link.get('href')
+        if(url.find('listing.asp?agency_subtype=dept') is not -1):
+            if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
+                print link.get('href')
+
 
 html_doc.close()
 
