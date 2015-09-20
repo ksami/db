@@ -99,6 +99,8 @@ def main():
                                             subdiv = font.string
                                         break
 
+                            #//TODO: missed out subsub(sub)div check header above subdiv for its parent div
+                            #ref: MOF accountant-general
                             #find position and name
                             for tag in link.find_all('tr'):
                                 if tag.has_attr('valign'):
@@ -106,16 +108,21 @@ def main():
                                         if tag.td.a is not None:
                                             if tag.td.a.has_attr('name'):
                                                 pos = tag.td.a.string.strip()
-                                                name = tag.td.next_sibling.next_sibling.font.get_text().strip()
+                                                names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
 
                                                 #no name
-                                                if name != '-':
+                                                if names[0] != '-':
+                                                    #why is their address part of their name
+                                                    name = names[0]
                                                     print org+'\t'+div+'\t'+subdiv+'\t'+subsubdiv+'\t'+ pos + '\t' + name
 
 
 
-        # delay 0.1 sec
+        # delay 0.1 sec and reset
         time.sleep(0.1)
+        div = ''
+        subdiv = ''
+        subsubdiv = ''
 
 
     html_doc.close()
