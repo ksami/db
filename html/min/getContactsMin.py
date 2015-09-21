@@ -99,7 +99,7 @@ def main():
                                                 if names[0] != '-':
                                                     #why is their address part of their name
                                                     name = names[0]
-                                                    print org+'\t'+div+'\t'+subdiv+'\t'+subsubdiv+'\t'+ pos + '\t' + name
+                                                    print '\t'.join([org,div,subdiv,subsubdiv,pos,name])
 
 
 
@@ -124,7 +124,7 @@ def main():
                                         
                                         #missing
                                         if response is None:
-                                            print org+'\t'+div+'\t'+subdiv+'\t'+subsubdiv+'\t'+ 'MISSING' + '\t' + 'MISSING'
+                                            print '\t'.join([org,div,subdiv,subsubdiv,'MISSING','MISSING'])
 
                                         #normal
                                         else:
@@ -153,7 +153,7 @@ def main():
                                                                     if names[0] != '-':
                                                                         #why is their address part of their name
                                                                         name = names[0]
-                                                                        print org+'\t'+div+'\t'+subdiv+'\t'+subsubdiv+'\t'+ pos + '\t' + name
+                                                                        print '\t'.join([org,div,subdiv,subsubdiv,pos,name])
 
 
 
