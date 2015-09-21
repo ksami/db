@@ -41,9 +41,9 @@ def main():
             print org+'\t'+div+'\t'+subdiv+'\t'+subsubdiv+'\t'+ fields[0].strip() + '\t' + fields[2].strip()
         
 
-    # Subdivs
+    # Divisions
     
-    # get depts/divisions links
+    # get division links
     for link in soup.find_all('a'):
         if(link.get('href') is not None):
             url = link.get('href')
@@ -51,29 +51,14 @@ def main():
                 if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
                     div = link.string
 
-
-                    #get html docs
-                    req_norm = Request(base_url+url)
-                    req_expand = Request(base_url+url.replace('listing', 'listing_expand'))
-
                     try:
-                        response_norm = urlopen(req_norm)
+                        req_norm = Request(base_url+url)
+                        response = urlopen(req_norm)
+                        #response_norm = urlopen(req_norm)
                     #normal is missing
                     except HTTPError as e:
                         if e.code == 417 or e.code == 404:
                             response = None
-                        
-                    #normal is okay
-                    else:
-                        try:
-                            response_expand = urlopen(req_expand)
-                        #expand is missing
-                        except HTTPError as e:
-                            if e.code == 417 or e.code == 404:
-                                response = response_norm
-                        else:
-                            response = response_expand
-
 
                     
                     #missing
@@ -88,19 +73,19 @@ def main():
                         is_first = True
                         for link in soup.find_all(has_subdivname):
 
-                            #find subdiv
-                            for font in link.find_all('font'):
-                                if font.has_attr('size'):
-                                    if font['size'] == '3':
-                                        if is_first:
-                                            div = font.string
-                                            is_first = False
-                                        else:
-                                            subdiv = font.string
-                                        break
+                            #find div name
+                            # for font in link.find_all('font'):
+                            #     if font.has_attr('size'):
+                            #         if font['size'] == '3':
+                            #             if is_first:
+                            #                 div = font.string
+                            #                 is_first = False
+                            #             else:
+                            #                 subdiv = font.string
+                            #             break
 
                             #//TODO: missed out subsub(sub)div check header above subdiv for its parent div
-                            #ref: MOF accountant-general
+                            #ref: MOF ECONOMIC PROGRAMMES DIRECTORATE
                             #find position and name
                             for tag in link.find_all('tr'):
                                 if tag.has_attr('valign'):
@@ -115,6 +100,62 @@ def main():
                                                     #why is their address part of their name
                                                     name = names[0]
                                                     print org+'\t'+div+'\t'+subdiv+'\t'+subsubdiv+'\t'+ pos + '\t' + name
+
+
+
+                        # Subdivs
+                        
+                        # get subdiv links
+                        for link in soup.find_all('a'):
+                            if(link.get('href') is not None):
+                                url = link.get('href')
+                                if(url.find('listing.asp?agency_subtype=dept') is not -1):
+                                    if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
+                                        subdiv = link.string
+
+                                        try:
+                                            req_norm = Request(base_url+url)
+                                            response = urlopen(req_norm)
+                                            #response_norm = urlopen(req_norm)
+                                        #normal is missing
+                                        except HTTPError as e:
+                                            if e.code == 417 or e.code == 404:
+                                                response = None
+                                        
+                                        #missing
+                                        if response is None:
+                                            print org+'\t'+div+'\t'+subdiv+'\t'+subsubdiv+'\t'+ 'MISSING' + '\t' + 'MISSING'
+
+                                        #normal
+                                        else:
+                                            soup = BeautifulSoup(response.read(), 'html.parser')
+
+                                            # Extract cell contents
+                                            for link in soup.find_all(has_subdivname):
+
+                                                #find div name
+                                                # for font in link.find_all('font'):
+                                                #     if font.has_attr('size'):
+                                                #         if font['size'] == '3':
+                                                #             subdiv = font.string
+
+
+                                                #find position and name
+                                                for tag in link.find_all('tr'):
+                                                    if tag.has_attr('valign'):
+                                                        if tag.td is not None:
+                                                            if tag.td.a is not None:
+                                                                if tag.td.a.has_attr('name'):
+                                                                    pos = tag.td.a.string.strip()
+                                                                    names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
+
+                                                                    #no name
+                                                                    if names[0] != '-':
+                                                                        #why is their address part of their name
+                                                                        name = names[0]
+                                                                        print org+'\t'+div+'\t'+subdiv+'\t'+subsubdiv+'\t'+ pos + '\t' + name
+
+
 
 
 
