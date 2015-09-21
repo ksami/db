@@ -91,7 +91,7 @@ def main():
                                 if tag.has_attr('valign'):
                                     if tag.td is not None:
                                         if tag.td.a is not None:
-                                            if tag.td.a.has_attr('name'):
+                                            if tag.td.a.has_attr('name') and tag.td.a.string is not None:
                                                 pos = tag.td.a.string.strip()
                                                 names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
 
@@ -145,7 +145,7 @@ def main():
                                                     if tag.has_attr('valign'):
                                                         if tag.td is not None:
                                                             if tag.td.a is not None:
-                                                                if tag.td.a.has_attr('name'):
+                                                                if tag.td.a.has_attr('name') and tag.td.a.string is not None:
                                                                     pos = tag.td.a.string.strip()
                                                                     names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
 
