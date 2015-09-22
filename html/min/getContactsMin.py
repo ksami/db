@@ -149,10 +149,12 @@ def main():
                                                                     pos = tag.td.a.string.strip()
                                                                     names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
 
+
+                                                                    #//TODO: copy fix to above
                                                                     #no name
                                                                     if names[0] != '-':
-                                                                        #why is their address part of their name
-                                                                        name = names[0]
+                                                                        #discard address in name and replace unicode apostrophe
+                                                                        name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                                         print '\t'.join([org,div,subdiv,subsubdiv,pos,name])
 
 
