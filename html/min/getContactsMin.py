@@ -5,12 +5,13 @@ from urllib2 import Request, urlopen
 from urllib2 import HTTPError
 from bs4 import BeautifulSoup
 
+base_url = 'http://eresources.nlb.gov.sg/webarchives/wayback/20070223201456/http://app.sgdi.gov.sg/'
+
 def main():
     if len(sys.argv) < 2:
         print 'not enough arguments'
         exit(1)
 
-    base_url = 'http://eresources.nlb.gov.sg/webarchives/wayback/20070223201456/http://app.sgdi.gov.sg/'
     file_name = sys.argv[1]
     #file_name = './html/min/mcys.html'
     org = file_name.replace('.html', '')
@@ -43,13 +44,30 @@ def main():
 
     # Divisions
     
+    extractContent(soup, [org, div, subdiv, subsubdiv], 1)
+
+
+    html_doc.close()
+
+
+
+
+
+def extractContent(soup, orglist, level):
     # get division links
     for link in soup.find_all('a'):
-        if(link.get('href') is not None):
+        if(link.parent.name == 'font' and link.parent.has_attr('size') and link.get('href') is not None):
             url = link.get('href')
-            if(url.find('listing.asp?agency_subtype=dept') is not -1):
+            if(link.parent['size'] == '2' and url.find('listing.asp?agency_subtype=dept') is not -1):
                 if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
-                    div = link.string
+
+                    #set org level
+                    orglist[level] = link.string
+                    org = orglist[0]
+                    div = orglist[1]
+                    subdiv = orglist[2]
+                    subsubdiv = orglist[3]
+
 
                     try:
                         req_norm = Request(base_url+url)
@@ -63,17 +81,16 @@ def main():
                     
                     #missing
                     if response is None:
-                        print org+'\t'+div+'\t'+subdiv+'\t'+subsubdiv+'\t'+ 'MISSING' + '\t' + 'MISSING'
+                        print '\t'.join([org,div,subdiv,subsubdiv,'MISSING','MISSING'])
 
                     #normal
                     else:
                         soup = BeautifulSoup(response.read(), 'html.parser')
 
                         # Extract cell contents
-                        is_first = True
                         for link in soup.find_all(has_subdivname):
 
-                            #find div name
+                            #find div/subdiv/subsubdiv name
                             # for font in link.find_all('font'):
                             #     if font.has_attr('size'):
                             #         if font['size'] == '3':
@@ -99,74 +116,13 @@ def main():
                                                     #and discard other unicode chars
                                                     name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                     print '\t'.join([org,div,subdiv,subsubdiv,pos,name])
-
-
-
-                        # Subdivs
                         
-                        # get subdiv links
-                        for link in soup.find_all('a'):
-                            if(link.get('href') is not None):
-                                url = link.get('href')
-                                if(url.find('listing.asp?agency_subtype=dept') is not -1):
-                                    if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
-                                        subdiv = link.string
+                        # delay 0.1 sec
+                        time.sleep(0.1)
 
-                                        try:
-                                            req_norm = Request(base_url+url)
-                                            response = urlopen(req_norm)
-                                            #response_norm = urlopen(req_norm)
-                                        #normal is missing
-                                        except HTTPError as e:
-                                            if e.code == 417 or e.code == 404:
-                                                response = None
-                                        
-                                        #missing
-                                        if response is None:
-                                            print '\t'.join([org,div,subdiv,subsubdiv,'MISSING','MISSING'])
-
-                                        #normal
-                                        else:
-                                            soup = BeautifulSoup(response.read(), 'html.parser')
-
-                                            # Extract cell contents
-                                            for link in soup.find_all(has_subdivname):
-
-                                                #find div name
-                                                # for font in link.find_all('font'):
-                                                #     if font.has_attr('size'):
-                                                #         if font['size'] == '3':
-                                                #             subdiv = font.string
-
-
-                                                #find position and name
-                                                for tag in link.find_all('tr'):
-                                                    if tag.has_attr('valign'):
-                                                        if tag.td is not None:
-                                                            if tag.td.a is not None:
-                                                                if tag.td.a.has_attr('name') and tag.td.a.string is not None:
-                                                                    pos = tag.td.a.string.strip()
-                                                                    names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
-
-                                                                    #no name
-                                                                    if names[0] != '-':
-                                                                        #discard address in name and replace unicode apostrophe
-                                                                        #and discard other unicode chars
-                                                                        name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                                        print '\t'.join([org,div,subdiv,subsubdiv,pos,name])
-
-
-
-
-
-        # delay 0.1 sec and reset
-        time.sleep(0.1)
-        div = ''
-        subdiv = ''
-        subsubdiv = ''
-
-
-    html_doc.close()
+                        #recursively extract content
+                        extractContent(soup, [org, div, subdiv, subsubdiv], (level+1))
+                        
 
 
 
