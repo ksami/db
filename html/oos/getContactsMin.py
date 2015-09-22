@@ -14,8 +14,8 @@ def main():
 
     file_name = sys.argv[1]
     #file_name = './html/min/mcys.html'
-    org = ''
-    div = file_name.replace('.html', '')
+    org = file_name.replace('.html', '')
+    div = ''
     subdiv1 = ''
     subdiv2 = ''
     subdiv3 = ''
@@ -39,9 +39,6 @@ def main():
         # print link.get_text().strip()
         # print '\n========\n\n'
 
-    # Get organization name
-    org = soup.find(is_orgname).string
-
 
     # Printing
     print 'Organization\tDivision\tSubdivision\tSubsubdivision\tSubsubsubdivision\tSubdivision4\tSubdivision5\tSubdivision6\tSubdivision7\tSubdivision8\tSubdivision9\tPost\tFull Name'
@@ -53,8 +50,8 @@ def main():
         
 
     # Divisions
-    # start from subdiv index 2
-    extractContent(soup, [org, div, subdiv1, subdiv2, subdiv3, subdiv4, subdiv5, subdiv6, subdiv7, subdiv8, subdiv9], 2)
+    # start from div index 1
+    extractContent(soup, [org, div, subdiv1, subdiv2, subdiv3, subdiv4, subdiv5, subdiv6, subdiv7, subdiv8, subdiv9], 1)
 
 
     html_doc.close()
@@ -130,7 +127,7 @@ def extractContent(soup, orglist, level):
 
                                                 #no name
                                                 if names[0] != '-':
-                                                    #discard address in name and replace unicode apostrophe
+                                                    #discard address in name/pos and replace unicode apostrophe
                                                     #and discard other unicode chars
                                                     pos = poss[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                     name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
@@ -145,16 +142,6 @@ def extractContent(soup, orglist, level):
 
 
 
-
-
-
-def is_orgname(tag):
-    if tag.name == 'font' and tag.has_attr('size'):
-        if tag['size'] == '2':
-            if tag.parent.name == 'a' and tag.parent.has_attr('href'):
-                if tag.parent.get('href').find('listing.asp?agency_subtype=dept') is not -1:
-                    return True
-    return False
 
 
 
