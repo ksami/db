@@ -18,6 +18,8 @@ def main():
     div = ''
     subdiv = ''
     subsubdiv = ''
+    subsubsubdiv = ''
+    subsubsubsubdiv = ''
 
     html_doc = open(file_name, 'r')
 
@@ -34,17 +36,17 @@ def main():
 
 
     # Printing
-    print 'Organization\tDivision\tSubdivision\tSubsubdivision\tPost\tFull Name'
+    print 'Organization\tDivision\tSubdivision\tSubsubdivision\tSubsubsubdivision\tSubsubsubsubdivision\tPost\tFull Name'
     for cell in cells:
         fields = cell.split('\n')
         # no name
         if(fields[2].strip() != '-'):
-            print org+'\t'+div+'\t'+subdiv+'\t'+subsubdiv+'\t'+ fields[0].strip() + '\t' + fields[2].strip()
+            print '\t'.join([org,div,subdiv,subsubdiv,subsubsubdiv,subsubsubsubdiv,fields[0].strip(),fields[2].strip()])
         
 
     # Divisions
     
-    extractContent(soup, [org, div, subdiv, subsubdiv], 1)
+    extractContent(soup, [org, div, subdiv, subsubdiv, subsubsubdiv, subsubsubsubdiv], 1)
 
 
     html_doc.close()
@@ -67,6 +69,8 @@ def extractContent(soup, orglist, level):
                     div = orglist[1]
                     subdiv = orglist[2]
                     subsubdiv = orglist[3]
+                    subsubsubdiv = orglist[4]
+                    subsubsubsubdiv = orglist[5]
 
 
                     try:
@@ -81,7 +85,7 @@ def extractContent(soup, orglist, level):
                     
                     #missing
                     if response is None:
-                        print '\t'.join([org,div,subdiv,subsubdiv,'MISSING','MISSING'])
+                        print '\t'.join([org,div,subdiv,subsubdiv,subsubsubdiv,subsubsubsubdiv,'MISSING','MISSING'])
 
                     #normal
                     else:
@@ -115,13 +119,13 @@ def extractContent(soup, orglist, level):
                                                     #discard address in name and replace unicode apostrophe
                                                     #and discard other unicode chars
                                                     name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                    print '\t'.join([org,div,subdiv,subsubdiv,pos,name])
+                                                    print '\t'.join([org,div,subdiv,subsubdiv,subsubsubdiv,subsubsubsubdiv,pos,name])
                         
                         # delay 0.1 sec
                         time.sleep(0.1)
 
                         #recursively extract content
-                        extractContent(soup, [org, div, subdiv, subsubdiv], (level+1))
+                        extractContent(soup, [org,div,subdiv,subsubdiv,subsubsubdiv,subsubsubsubdiv], (level+1))
                         
 
 
