@@ -16,10 +16,15 @@ def main():
     #file_name = './html/min/mcys.html'
     org = file_name.replace('.html', '')
     div = ''
-    subdiv = ''
-    subsubdiv = ''
-    subsubsubdiv = ''
-    subsubsubsubdiv = ''
+    subdiv1 = ''
+    subdiv2 = ''
+    subdiv3 = ''
+    subdiv4 = ''
+    subdiv5 = ''
+    subdiv6 = ''
+    subdiv7 = ''
+    subdiv8 = ''
+    subdiv9 = ''
 
     html_doc = open(file_name, 'r')
 
@@ -36,17 +41,17 @@ def main():
 
 
     # Printing
-    print 'Organization\tDivision\tSubdivision\tSubsubdivision\tSubsubsubdivision\tSubsubsubsubdivision\tPost\tFull Name'
+    print 'Organization\tDivision\tSubdivision\tSubsubdivision\tSubsubsubdivision\tSubdivision4\tSubdivision5\tSubdivision6\tSubdivision7\tSubdivision8\tSubdivision9\tPost\tFull Name'
     for cell in cells:
         fields = cell.split('\n')
         # no name
         if(fields[2].strip() != '-'):
-            print '\t'.join([org,div,subdiv,subsubdiv,subsubsubdiv,subsubsubsubdiv,fields[0].strip(),fields[2].strip()])
+            print '\t'.join([org,div,subdiv1,subdiv2,subdiv3,subdiv4,subdiv5,subdiv6,subdiv7,subdiv8,subdiv9,fields[0].strip(),fields[2].strip()])
         
 
     # Divisions
     # start from div index 1
-    extractContent(soup, [org, div, subdiv, subsubdiv, subsubsubdiv, subsubsubsubdiv], 1)
+    extractContent(soup, [org, div, subdiv1, subdiv2, subdiv3, subdiv4, subdiv5, subdiv6, subdiv7, subdiv8, subdiv9], 1)
 
 
     html_doc.close()
@@ -67,10 +72,15 @@ def extractContent(soup, orglist, level):
                     orglist[level] = link.get_text()
                     org = orglist[0]
                     div = orglist[1]
-                    subdiv = orglist[2]
-                    subsubdiv = orglist[3]
-                    subsubsubdiv = orglist[4]
-                    subsubsubsubdiv = orglist[5]
+                    subdiv1 = orglist[2]
+                    subdiv2 = orglist[3]
+                    subdiv3 = orglist[4]
+                    subdiv4 = orglist[5]
+                    subdiv5 = orglist[6]
+                    subdiv6 = orglist[7]
+                    subdiv7 = orglist[8]
+                    subdiv8 = orglist[9]
+                    subdiv9 = orglist[10]
 
 
                     try:
@@ -85,7 +95,7 @@ def extractContent(soup, orglist, level):
                     
                     #missing
                     if response is None:
-                        print '\t'.join([org,div,subdiv,subsubdiv,subsubsubdiv,subsubsubsubdiv,'MISSING','MISSING'])
+                        print '\t'.join([org, div, subdiv1, subdiv2, subdiv3, subdiv4, subdiv5, subdiv6, subdiv7, subdiv8, subdiv9,'MISSING','MISSING'])
 
                     #normal
                     else:
@@ -95,7 +105,7 @@ def extractContent(soup, orglist, level):
                         # Extract cell contents
                         for link in soup.find_all(has_subdivname):
 
-                            #find div/subdiv/subsubdiv name
+                            #find div/subdiv/subdiv2 name
                             # for font in link.find_all('font'):
                             #     if font.has_attr('size'):
                             #         if font['size'] == '3':
@@ -121,13 +131,13 @@ def extractContent(soup, orglist, level):
                                                     #and discard other unicode chars
                                                     pos = poss[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                     name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                    print '\t'.join([org,div,subdiv,subsubdiv,subsubsubdiv,subsubsubsubdiv,pos,name])
+                                                    print '\t'.join([org,div,subdiv1,subdiv2,subdiv3,subdiv4,subdiv5,subdiv6,subdiv7,subdiv8,subdiv9,pos,name])
                         
                         # delay 0.1 sec
                         time.sleep(0.1)
 
                         #recursively extract content
-                        extractContent(soup, [org,div,subdiv,subsubdiv,subsubsubdiv,subsubsubsubdiv], (level+1))
+                        extractContent(soup, [org,div,subdiv1,subdiv2,subdiv3,subdiv4,subdiv5,subdiv6,subdiv7,subdiv8,subdiv9], (level+1))
                         
 
 
