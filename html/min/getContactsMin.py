@@ -84,8 +84,6 @@ def main():
                             #                 subdiv = font.string
                             #             break
 
-                            #//TODO: missed out subsub(sub)div check header above subdiv for its parent div
-                            #ref: MOF ECONOMIC PROGRAMMES DIRECTORATE
                             #find position and name
                             for tag in link.find_all('tr'):
                                 if tag.has_attr('valign'):
@@ -97,8 +95,9 @@ def main():
 
                                                 #no name
                                                 if names[0] != '-':
-                                                    #why is their address part of their name
-                                                    name = names[0]
+                                                    #discard address in name and replace unicode apostrophe
+                                                    #and discard other unicode chars
+                                                    name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                     print '\t'.join([org,div,subdiv,subsubdiv,pos,name])
 
 
@@ -149,11 +148,10 @@ def main():
                                                                     pos = tag.td.a.string.strip()
                                                                     names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
 
-
-                                                                    #//TODO: copy fix to above
                                                                     #no name
                                                                     if names[0] != '-':
                                                                         #discard address in name and replace unicode apostrophe
+                                                                        #and discard other unicode chars
                                                                         name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                                         print '\t'.join([org,div,subdiv,subsubdiv,pos,name])
 
