@@ -67,7 +67,7 @@ def extractContent(soup, orglist, level):
                 if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
 
                     #set org level
-                    orglist[level] = link.string
+                    orglist[level] = link.get_text()
                     org = orglist[0]
                     div = orglist[1]
                     subdiv = orglist[2]
@@ -92,7 +92,8 @@ def extractContent(soup, orglist, level):
 
                     #normal
                     else:
-                        soup = BeautifulSoup(response.read(), 'html.parser')
+                        doc = response.read().replace('</br>', '<br>')
+                        soup = BeautifulSoup(doc, 'html.parser')
 
                         # Extract cell contents
                         for link in soup.find_all(has_subdivname):
@@ -114,13 +115,14 @@ def extractContent(soup, orglist, level):
                                     if tag.td is not None:
                                         if tag.td.a is not None:
                                             if tag.td.a.has_attr('name') and tag.td.a.string is not None:
-                                                pos = tag.td.a.string.strip()
+                                                poss = tag.td.a.string.strip().split('\n')
                                                 names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
 
                                                 #no name
                                                 if names[0] != '-':
                                                     #discard address in name and replace unicode apostrophe
                                                     #and discard other unicode chars
+                                                    pos = poss[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                     name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                     print '\t'.join([org,div,subdiv,subsubdiv,subsubsubdiv,subsubsubsubdiv,pos,name])
                         
