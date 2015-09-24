@@ -14,17 +14,10 @@ def main():
 
     file_name = sys.argv[1]
     #file_name = './html/min/mcys.html'
-    org = file_name.replace('.html', '')
-    div = ''
-    subdiv1 = ''
-    subdiv2 = ''
-    subdiv3 = ''
-    subdiv4 = ''
-    subdiv5 = ''
-    subdiv6 = ''
-    subdiv7 = ''
-    subdiv8 = ''
-    subdiv9 = ''
+    orglist = ['' for _ in range(11)]
+    orglist[0] = file_name.replace('.html', '')
+    # org = file_name.replace('.html', '')
+
 
     html_doc = open(file_name, 'r')
 
@@ -46,12 +39,12 @@ def main():
         fields = cell.split('\n')
         # no name
         if(fields[2].strip() != '-'):
-            print '\t'.join([org,div,subdiv1,subdiv2,subdiv3,subdiv4,subdiv5,subdiv6,subdiv7,subdiv8,subdiv9,fields[0].strip(),fields[2].strip()])
+            print '\t'.join(['\t'.join(orglist),fields[0].strip(),fields[2].strip()])
         
 
     # Divisions
     # start from div index 1
-    extractContent(soup, [org, div, subdiv1, subdiv2, subdiv3, subdiv4, subdiv5, subdiv6, subdiv7, subdiv8, subdiv9], 1)
+    extractContent(soup, orglist, 1)
 
 
     html_doc.close()
@@ -70,17 +63,6 @@ def extractContent(soup, orglist, level):
 
                     #set org level
                     orglist[level] = link.get_text()
-                    org = orglist[0]
-                    div = orglist[1]
-                    subdiv1 = orglist[2]
-                    subdiv2 = orglist[3]
-                    subdiv3 = orglist[4]
-                    subdiv4 = orglist[5]
-                    subdiv5 = orglist[6]
-                    subdiv6 = orglist[7]
-                    subdiv7 = orglist[8]
-                    subdiv8 = orglist[9]
-                    subdiv9 = orglist[10]
 
 
                     try:
@@ -95,7 +77,7 @@ def extractContent(soup, orglist, level):
                     
                     #missing
                     if response is None:
-                        print '\t'.join([org, div, subdiv1, subdiv2, subdiv3, subdiv4, subdiv5, subdiv6, subdiv7, subdiv8, subdiv9,'MISSING','MISSING'])
+                        print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
 
                     #normal
                     else:
@@ -131,13 +113,13 @@ def extractContent(soup, orglist, level):
                                                     #and discard other unicode chars
                                                     pos = poss[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                     name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                    print '\t'.join([org,div,subdiv1,subdiv2,subdiv3,subdiv4,subdiv5,subdiv6,subdiv7,subdiv8,subdiv9,pos,name])
+                                                    print '\t'.join(['\t'.join(orglist),pos,name])
                         
                         # delay 0.1 sec
                         time.sleep(0.1)
 
                         #recursively extract content
-                        extractContent(soup, [org,div,subdiv1,subdiv2,subdiv3,subdiv4,subdiv5,subdiv6,subdiv7,subdiv8,subdiv9], (level+1))
+                        extractContent(soup, orglist, (level+1))
                         
 
 
