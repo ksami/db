@@ -55,7 +55,7 @@ def main():
 
 
 
-def extractContent(soup, orglist, level):
+def extractContent(soup, orglist_orig, level):
     # get division links
     for link in soup.find_all('a'):
         if(link.parent.name == 'font' and link.parent.has_attr('size') and link.get('href') is not None):
@@ -64,6 +64,7 @@ def extractContent(soup, orglist, level):
                 if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
 
                     #set org level
+                    orglist = orglist_orig[:]
                     orglist[level] = link.get_text()
 
 

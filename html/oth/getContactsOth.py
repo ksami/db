@@ -24,28 +24,38 @@ def main():
     soup = BeautifulSoup(html_doc.read(), 'html.parser')
     # print(soup.prettify())
 
-    #//TODO: change this part use the is_div func below!
-
-    # Extract cell contents
-    cells = []
-    for link in soup.find_all(has_name):
-        cells.append(link.get_text().strip())
-        # print link.get_text().strip()
-        # print '\n========\n\n'
-
-
     # Printing
     print 'Organization\tDivision\tSubdivision\tSubsubdivision\tSubsubsubdivision\tSubdivision4\tSubdivision5\tSubdivision6\tSubdivision7\tSubdivision8\tSubdivision9\tPost\tFull Name'
-    for cell in cells:
-        fields = cell.split('\n')
-        # no name
-        if(fields[2].strip() != '-'):
-            print '\t'.join(['\t'.join(orglist),fields[0].strip(),fields[2].strip()])
+
+    # Process divs page
+    for tr in soup.find_all(is_div):
+        url = tr.td.a.get('href')
+        orglist[1] = tr.td.a.get_text().strip()
         
 
-    # Divisions
-    # start from div index 1
-    extractContent(soup, orglist, 1)
+        try:
+            req_norm = Request(base_url+url)
+            response = urlopen(req_norm)
+            #response_norm = urlopen(req_norm)
+        #normal is missing
+        except HTTPError as e:
+            if e.code == 417 or e.code == 404:
+                response = None
+
+        
+        #missing
+        if response is None:
+            print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
+
+        #normal
+        else:
+            doc = response.read().replace('</br>', '<br>')
+            soup = BeautifulSoup(doc, 'html.parser')
+
+            # Subdivisions
+            # start from subdiv index 2
+            extractContent(soup, orglist, 2)
+        
 
 
     html_doc.close()
@@ -54,7 +64,7 @@ def main():
 
 
 
-def extractContent(soup, orglist, level):
+def extractContent(soup, orglist_orig, level):
     # get division links
     for link in soup.find_all('a'):
         if(link.parent.name == 'font' and link.parent.has_attr('size') and link.get('href') is not None):
@@ -63,6 +73,7 @@ def extractContent(soup, orglist, level):
                 if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
 
                     #set org level
+                    orglist = orglist_orig[:]
                     orglist[level] = link.get_text()
 
 
