@@ -106,8 +106,8 @@ def extractContent(soup, orglist_orig, level):
                                 if tag.has_attr('valign'):
                                     if tag.td is not None:
                                         if tag.td.a is not None:
-                                            if tag.td.a.has_attr('name') and tag.td.a.string is not None:
-                                                poss = tag.td.a.string.strip().split('\n')
+                                            if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
+                                                poss = tag.td.a.get_text().strip().split('\n')
                                                 names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
 
                                                 #no name
