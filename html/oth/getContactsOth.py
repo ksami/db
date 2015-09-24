@@ -31,8 +31,6 @@ def main():
     for tr in soup.find_all(is_div):
         url = tr.td.a.get('href')
         orglist[1] = tr.td.a.get_text().strip()
-        level = 2
-        has_leveledup = False
         
 
         try:
@@ -56,6 +54,8 @@ def main():
 
             # Extract cell contents
             for link in soup.find_all(has_subdivname):
+                level = 2
+                has_leveledup = False
 
                 #find div/subdiv/subdiv2 name
                 # for font in link.find_all('font'):
@@ -93,8 +93,9 @@ def main():
             # Subdivisions
             # start from subdiv index 2 or if already filled, index 3
             if has_leveledup:
-                level = level + 1
-            extractContent(soup, orglist, level)
+                extractContent(soup, orglist, (level+1))
+            else:
+                extractContent(soup, orglist, level)
         
 
 
@@ -104,82 +105,112 @@ def main():
 
 
 
-def extractContent(soup, orglist_orig, level):
+def extractContent(soup, orglist_orig, level, is_cmtepage=False):
     # get division links
     for link in soup.find_all('a'):
-        if(link.parent.name == 'font' and link.parent.has_attr('size') and link.get('href') is not None):
+        if(link.get('href') is not None):
+
             url = link.get('href')
-            if(link.parent['size'] == '2' and url.find('listing.asp?agency_subtype=dept') is not -1):
-                if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
+            if( (not is_cmtepage) and (link.get('href').find('http') is -1) and (link.get('href').find('listing.asp?agency_subtype=cmte') is not -1) ):
+                #set org level
+                orglist = orglist_orig[:]
+                orglist[level] = link.get_text()
 
-                    #set org level
-                    orglist = orglist_orig[:]
-                    orglist[level] = link.get_text()
-                    has_leveledup = False
+                try:
+                    req_norm = Request(base_url+url)
+                    response = urlopen(req_norm)
+                    #response_norm = urlopen(req_norm)
+                #normal is missing
+                except HTTPError as e:
+                    if e.code == 417 or e.code == 404:
+                        response = None
+
+                
+                #missing
+                if response is None:
+                    print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
+
+                #normal
+                else:
+                    doc = response.read().replace('</br>', '<br>')
+                    soup = BeautifulSoup(doc, 'html.parser')
+
+                    extractContent(soup, orglist, level, True)
 
 
-                    try:
-                        req_norm = Request(base_url+url)
-                        response = urlopen(req_norm)
-                        #response_norm = urlopen(req_norm)
-                    #normal is missing
-                    except HTTPError as e:
-                        if e.code == 417 or e.code == 404:
-                            response = None
+            if(link.parent.name == 'font' and link.parent.has_attr('size')):
+                if(link.parent['size'] == '2'):
 
-                    
-                    #missing
-                    if response is None:
-                        print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
+                    if( (url.find('http') is -1) and (url.find('listing.asp?agency_subtype=dept') is not -1) and (url.find('#dept_anchor') is -1) ):
 
-                    #normal
-                    else:
-                        doc = response.read().replace('</br>', '<br>')
-                        soup = BeautifulSoup(doc, 'html.parser')
+                        #set org level
+                        orglist = orglist_orig[:]
+                        orglist[level] = link.get_text()
+                        has_leveledup = False
 
-                        # Extract cell contents
-                        for link in soup.find_all(has_subdivname):
+                        try:
+                            req_norm = Request(base_url+url)
+                            response = urlopen(req_norm)
+                            #response_norm = urlopen(req_norm)
+                        #normal is missing
+                        except HTTPError as e:
+                            if e.code == 417 or e.code == 404:
+                                response = None
 
-                            #find div/subdiv/subdiv2 name
-                            # for font in link.find_all('font'):
-                            #     if font.has_attr('size'):
-                            #         if font['size'] == '3':
-                            #             if is_first:
-                            #                 div = font.string
-                            #                 is_first = False
-                            #             else:
-                            #                 subdiv = font.string
-                            #             break
-
-                            #find position and name
-                            for tag in link.find_all('tr'):
-                                if tag.has_attr('valign'):
-                                    if tag.td is not None:
-                                        if tag.td.a is not None:
-                                            if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
-                                                poss = tag.td.a.get_text('\n').strip().split('\n')
-                                                names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
-
-                                                #no name
-                                                if names[0] != '-':
-                                                    #discard address in name/pos and replace unicode apostrophe
-                                                    #and discard other unicode chars
-                                                    pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                    if len(poss) > 1:
-                                                        has_leveledup = True
-                                                        orglist[level] = poss[1].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-
-                                                    name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                    print '\t'.join(['\t'.join(orglist),pos,name])
                         
-                        # delay 0.1 sec
-                        time.sleep(0.1)
+                        #missing
+                        if response is None:
+                            print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
 
-                        #recursively extract content
-                        if has_leveledup:
-                            level = level + 1
-                        extractContent(soup, orglist, (level+1))
-                        
+                        #normal
+                        else:
+                            doc = response.read().replace('</br>', '<br>')
+                            soup = BeautifulSoup(doc, 'html.parser')
+
+                            # Extract cell contents
+                            for link in soup.find_all(has_subdivname):
+
+                                #find div/subdiv/subdiv2 name
+                                # for font in link.find_all('font'):
+                                #     if font.has_attr('size'):
+                                #         if font['size'] == '3':
+                                #             if is_first:
+                                #                 div = font.string
+                                #                 is_first = False
+                                #             else:
+                                #                 subdiv = font.string
+                                #             break
+
+                                #find position and name
+                                for tag in link.find_all('tr'):
+                                    if tag.has_attr('valign'):
+                                        if tag.td is not None:
+                                            if tag.td.a is not None:
+                                                if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
+                                                    poss = tag.td.a.get_text('\n').strip().split('\n')
+                                                    names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
+
+                                                    #no name
+                                                    if names[0] != '-':
+                                                        #discard address in name/pos and replace unicode apostrophe
+                                                        #and discard other unicode chars
+                                                        pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                                        if len(poss) > 1:
+                                                            has_leveledup = True
+                                                            orglist[level+1] = poss[1].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+
+                                                        name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                                        print '\t'.join(['\t'.join(orglist),pos,name])
+                            
+                            # delay 0.1 sec
+                            time.sleep(0.1)
+
+                            #recursively extract content
+                            if has_leveledup:
+                                extractContent(soup, orglist, (level+2))
+                            else:
+                                extractContent(soup, orglist, (level+1))
+                            
 
 
 # get div names and links for Others

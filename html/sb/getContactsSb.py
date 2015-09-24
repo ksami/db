@@ -32,7 +32,7 @@ def main():
         # print '\n========\n\n'
 
     # Get organization name
-    org = soup.find(is_orgname).string
+    orglist[0] = soup.find(is_orgname).string
 
 
     # Printing
@@ -55,75 +55,105 @@ def main():
 
 
 
-def extractContent(soup, orglist_orig, level):
+def extractContent(soup, orglist_orig, level, is_cmtepage=False):
     # get division links
     for link in soup.find_all('a'):
-        if(link.parent.name == 'font' and link.parent.has_attr('size') and link.get('href') is not None):
+        if(link.get('href') is not None):
+
             url = link.get('href')
-            if(link.parent['size'] == '2' and url.find('listing.asp?agency_subtype=dept') is not -1):
-                if((url.find('http') is -1) and (url.find('#dept_anchor') is -1)):
+            if( (not is_cmtepage) and (link.get('href').find('http') is -1) and (link.get('href').find('listing.asp?agency_subtype=cmte') is not -1) ):
+                #set org level
+                orglist = orglist_orig[:]
+                orglist[level] = link.get_text()
 
-                    #set org level
-                    orglist = orglist_orig[:]
-                    orglist[level] = link.get_text()
+                try:
+                    req_norm = Request(base_url+url)
+                    response = urlopen(req_norm)
+                    #response_norm = urlopen(req_norm)
+                #normal is missing
+                except HTTPError as e:
+                    if e.code == 417 or e.code == 404:
+                        response = None
+
+                
+                #missing
+                if response is None:
+                    print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
+
+                #normal
+                else:
+                    doc = response.read().replace('</br>', '<br>')
+                    soup = BeautifulSoup(doc, 'html.parser')
+
+                    extractContent(soup, orglist, level, True)
 
 
-                    try:
-                        req_norm = Request(base_url+url)
-                        response = urlopen(req_norm)
-                        #response_norm = urlopen(req_norm)
-                    #normal is missing
-                    except HTTPError as e:
-                        if e.code == 417 or e.code == 404:
-                            response = None
+            if(link.parent.name == 'font' and link.parent.has_attr('size')):
+                if(link.parent['size'] == '2'):
 
-                    
-                    #missing
-                    if response is None:
-                        print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
+                    if( (url.find('http') is -1) and (url.find('listing.asp?agency_subtype=dept') is not -1) and (url.find('#dept_anchor') is -1) ):
 
-                    #normal
-                    else:
-                        doc = response.read().replace('</br>', '<br>')
-                        soup = BeautifulSoup(doc, 'html.parser')
+                        #set org level
+                        orglist = orglist_orig[:]
+                        orglist[level] = link.get_text()
 
-                        # Extract cell contents
-                        for link in soup.find_all(has_subdivname):
 
-                            #find div/subdiv/subdiv2 name
-                            # for font in link.find_all('font'):
-                            #     if font.has_attr('size'):
-                            #         if font['size'] == '3':
-                            #             if is_first:
-                            #                 div = font.string
-                            #                 is_first = False
-                            #             else:
-                            #                 subdiv = font.string
-                            #             break
+                        try:
+                            req_norm = Request(base_url+url)
+                            response = urlopen(req_norm)
+                            #response_norm = urlopen(req_norm)
+                        #normal is missing
+                        except HTTPError as e:
+                            if e.code == 417 or e.code == 404:
+                                response = None
 
-                            #find position and name
-                            for tag in link.find_all('tr'):
-                                if tag.has_attr('valign'):
-                                    if tag.td is not None:
-                                        if tag.td.a is not None:
-                                            if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
-                                                poss = tag.td.a.get_text().strip().split('\n')
-                                                names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
-
-                                                #no name
-                                                if names[0] != '-':
-                                                    #discard address in name and replace unicode apostrophe
-                                                    #and discard other unicode chars
-                                                    pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                    name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                    print '\t'.join(['\t'.join(orglist),pos,name])
                         
-                        # delay 0.1 sec
-                        time.sleep(0.1)
+                        #missing
+                        if response is None:
+                            print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
 
-                        #recursively extract content
-                        extractContent(soup, orglist, (level+1))
-                        
+                        #normal
+                        else:
+                            doc = response.read().replace('</br>', '<br>')
+                            soup = BeautifulSoup(doc, 'html.parser')
+
+                            # Extract cell contents
+                            for link in soup.find_all(has_subdivname):
+
+                                #find div/subdiv/subdiv2 name
+                                # for font in link.find_all('font'):
+                                #     if font.has_attr('size'):
+                                #         if font['size'] == '3':
+                                #             if is_first:
+                                #                 div = font.string
+                                #                 is_first = False
+                                #             else:
+                                #                 subdiv = font.string
+                                #             break
+
+                                #find position and name
+                                for tag in link.find_all('tr'):
+                                    if tag.has_attr('valign'):
+                                        if tag.td is not None:
+                                            if tag.td.a is not None:
+                                                if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
+                                                    poss = tag.td.a.get_text().strip().split('\n')
+                                                    names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
+
+                                                    #no name
+                                                    if names[0] != '-':
+                                                        #discard address in name/pos and replace unicode apostrophe
+                                                        #and discard other unicode chars
+                                                        pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                                        name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                                        print '\t'.join(['\t'.join(orglist),pos,name])
+                            
+                            # delay 0.1 sec
+                            time.sleep(0.1)
+
+                            #recursively extract content
+                            extractContent(soup, orglist, (level+1))
+                            
 
 
 
