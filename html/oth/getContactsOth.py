@@ -87,7 +87,7 @@ def main():
                                             orglist[level] = poss[1].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
 
                                         name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                        # print '\t'.join(['\t'.join(orglist),pos,name])
+                                        print '\t'.join(['\t'.join(orglist),pos,name])
             
 
             # Subdivisions
