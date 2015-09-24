@@ -112,8 +112,8 @@ def extractContent(soup, orglist_orig, level):
                                                 if names[0] != '-':
                                                     #discard address in name/pos and replace unicode apostrophe
                                                     #and discard other unicode chars
-                                                    pos = poss[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                    name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                                    pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                                    name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                     print '\t'.join(['\t'.join(orglist),pos,name])
                         
                         # delay 0.1 sec

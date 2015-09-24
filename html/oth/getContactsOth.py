@@ -31,6 +31,8 @@ def main():
     for tr in soup.find_all(is_div):
         url = tr.td.a.get('href')
         orglist[1] = tr.td.a.get_text().strip()
+        level = 2
+        has_leveledup = False
         
 
         try:
@@ -72,21 +74,27 @@ def main():
                         if tag.td is not None:
                             if tag.td.a is not None:
                                 if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
-                                    poss = tag.td.a.get_text().strip().split('\n')
+                                    poss = tag.td.a.get_text('\n').strip().split('\n')
                                     names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
 
                                     #no name
                                     if names[0] != '-':
                                         #discard address in name/pos and replace unicode apostrophe
                                         #and discard other unicode chars
-                                        pos = poss[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                        name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                        print '\t'.join(['\t'.join(orglist),pos,name])
+                                        pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                        if len(poss) > 1:
+                                            has_leveledup = True
+                                            orglist[level] = poss[1].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+
+                                        name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                        # print '\t'.join(['\t'.join(orglist),pos,name])
             
 
             # Subdivisions
-            # start from subdiv index 2
-            extractContent(soup, orglist, 2)
+            # start from subdiv index 2 or if already filled, index 3
+            if has_leveledup:
+                level = level + 1
+            extractContent(soup, orglist, level)
         
 
 
@@ -107,6 +115,7 @@ def extractContent(soup, orglist_orig, level):
                     #set org level
                     orglist = orglist_orig[:]
                     orglist[level] = link.get_text()
+                    has_leveledup = False
 
 
                     try:
@@ -148,21 +157,27 @@ def extractContent(soup, orglist_orig, level):
                                     if tag.td is not None:
                                         if tag.td.a is not None:
                                             if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
-                                                poss = tag.td.a.get_text().strip().split('\n')
+                                                poss = tag.td.a.get_text('\n').strip().split('\n')
                                                 names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
 
                                                 #no name
                                                 if names[0] != '-':
                                                     #discard address in name/pos and replace unicode apostrophe
                                                     #and discard other unicode chars
-                                                    pos = poss[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                    name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                                    pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                                    if len(poss) > 1:
+                                                        has_leveledup = True
+                                                        orglist[level] = poss[1].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+
+                                                    name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                                     print '\t'.join(['\t'.join(orglist),pos,name])
                         
                         # delay 0.1 sec
                         time.sleep(0.1)
 
                         #recursively extract content
+                        if has_leveledup:
+                            level = level + 1
                         extractContent(soup, orglist, (level+1))
                         
 
