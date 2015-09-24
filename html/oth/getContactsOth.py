@@ -31,6 +31,8 @@ def main():
     for tr in soup.find_all(is_div):
         url = tr.td.a.get('href')
         orglist[1] = tr.td.a.get_text().strip()
+        print tr
+        print '=====\n'
         
 
         try:
@@ -51,6 +53,38 @@ def main():
         else:
             doc = response.read().replace('</br>', '<br>')
             soup = BeautifulSoup(doc, 'html.parser')
+
+            # Extract cell contents
+            for link in soup.find_all(has_subdivname):
+
+                #find div/subdiv/subdiv2 name
+                # for font in link.find_all('font'):
+                #     if font.has_attr('size'):
+                #         if font['size'] == '3':
+                #             if is_first:
+                #                 div = font.string
+                #                 is_first = False
+                #             else:
+                #                 subdiv = font.string
+                #             break
+
+                #find position and name
+                for tag in link.find_all('tr'):
+                    if tag.has_attr('valign'):
+                        if tag.td is not None:
+                            if tag.td.a is not None:
+                                if tag.td.a.has_attr('name') and tag.td.a.string is not None:
+                                    poss = tag.td.a.string.strip().split('\n')
+                                    names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
+
+                                    #no name
+                                    if names[0] != '-':
+                                        #discard address in name/pos and replace unicode apostrophe
+                                        #and discard other unicode chars
+                                        pos = poss[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                        name = names[0].replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                        print '\t'.join(['\t'.join(orglist),pos,name])
+            
 
             # Subdivisions
             # start from subdiv index 2
@@ -137,12 +171,12 @@ def extractContent(soup, orglist_orig, level):
 
 # get div names and links for Others
 def is_div(tag):
-    if tag.name == 'tr':
-        if tag.has_attr('valign'):
-            if tag.td is not None:
+    if tag.name == 'tr' and tag.parent.name == 'table':
+        if tag.has_attr('valign') and tag.parent.has_attr('width'):
+            if tag.td is not None and tag.parent['width'] == '100%':
                 if tag.td.a is not None:
                     if tag.td.a.has_attr('href'):
-                        if tag.td.a.get('href').find('listing.asp?agency_subtype=dept') is not -1:
+                        if tag.td.a.get('href').find('listing.asp?agency_subtype=dept') is not -1 and tag.td.a.get('href').find('#dept_anchor') is -1:
                             return True
     return False
 
