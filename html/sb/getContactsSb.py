@@ -150,8 +150,8 @@ def extractContent(soup, orglist_orig, level, is_cmtepage=False):
                                             name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
                                             print '\t'.join(['\t'.join(orglist),pos,name])
                             
-                            # delay 0.5 sec
-                            time.sleep(0.5)
+                            # delay 0.1 sec
+                            # time.sleep(0.1)
 
                             #recursively extract content
                             extractContent(soup, orglist, (level+1))
