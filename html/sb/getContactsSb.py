@@ -131,25 +131,27 @@ def extractContent(soup, orglist_orig, level, is_cmtepage=False):
                                 #                 subdiv = font.string
                                 #             break
 
-                                #find position and name
-                                for tag in link.find_all('tr'):
-                                    if tag.has_attr('valign'):
-                                        if tag.td is not None:
-                                            if tag.td.a is not None:
-                                                if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
-                                                    poss = tag.td.a.get_text().strip().split('\n')
-                                                    names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
+                                tags = link.find_all(is_linktr)
 
-                                                    #no name
-                                                    if names[0] != '-':
-                                                        #discard address in name/pos and replace unicode apostrophe
-                                                        #and discard other unicode chars
-                                                        pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                        name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                        print '\t'.join(['\t'.join(orglist),pos,name])
+                                if len(tags) == 0:
+                                    print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
+                                    
+                                else:
+                                    #find position and name
+                                    for tag in tags:
+                                        poss = tag.td.a.get_text().strip().split('\n')
+                                        names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
+
+                                        #no name
+                                        if names[0] != '-':
+                                            #discard address in name/pos and replace unicode apostrophe
+                                            #and discard other unicode chars
+                                            pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                            name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                            print '\t'.join(['\t'.join(orglist),pos,name])
                             
-                            # delay 0.1 sec
-                            time.sleep(0.1)
+                            # delay 0.5 sec
+                            time.sleep(0.5)
 
                             #recursively extract content
                             extractContent(soup, orglist, (level+1))
@@ -157,7 +159,14 @@ def extractContent(soup, orglist_orig, level, is_cmtepage=False):
 
 
 
-
+# get position and name in tr
+def is_linktr(tag):
+    if tag.has_attr('valign'):
+        if tag.td is not None:
+            if tag.td.a is not None:
+                if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
+                    return True
+    return False
 
 
 def is_orgname(tag):
