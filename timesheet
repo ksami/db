@@ -7,4 +7,6 @@ date, start, end, break, hours worked, nature of work
 150922, 1400, 1500, 0, 1, parse contents
 150922, 1900, 0130, 0, 6.5, extract contents
 150923, 2000, 2100, 0, 1, analyse html
-150924, 1330
+150924, 1330, 1830, 0, 5, analyse html
+150924, 2000, 2330, 0, 3.5, parse contents
+151003, 1300,

@@ -27,11 +27,12 @@ def main():
     # Printing
     print 'Organization\tDivision\tSubdivision\tSubsubdivision\tSubsubsubdivision\tSubdivision4\tSubdivision5\tSubdivision6\tSubdivision7\tSubdivision8\tSubdivision9\tPost\tFull Name'
 
+
     # Process divs page
     for tr in soup.find_all(is_div):
         url = tr.td.a.get('href')
         orglist[1] = tr.td.a.get_text().strip()
-        
+     
 
         try:
             req_norm = Request(base_url+url)
@@ -68,26 +69,28 @@ def main():
                 #                 subdiv = font.string
                 #             break
 
-                #find position and name
-                for tag in link.find_all('tr'):
-                    if tag.has_attr('valign'):
-                        if tag.td is not None:
-                            if tag.td.a is not None:
-                                if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
-                                    poss = tag.td.a.get_text('\n').strip().split('\n')
-                                    names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
+                tags = link.find_all(is_linktr)
 
-                                    #no name
-                                    if names[0] != '-':
-                                        #discard address in name/pos and replace unicode apostrophe
-                                        #and discard other unicode chars
-                                        pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                        if len(poss) > 1:
-                                            has_leveledup = True
-                                            orglist[level] = poss[1].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                if len(tags) == 0:
+                    print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
 
-                                        name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                        print '\t'.join(['\t'.join(orglist),pos,name])
+                else:
+                    #find position and name
+                    for tag in tags:
+                        poss = tag.td.a.get_text('\n').strip().split('\n')
+                        names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
+
+                        #no name
+                        if names[0] != '-':
+                            #discard address in name/pos and replace unicode apostrophe
+                            #and discard other unicode chars
+                            pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                            if len(poss) > 1:
+                                has_leveledup = True
+                                orglist[level] = poss[1].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+
+                            name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                            print '\t'.join(['\t'.join(orglist),pos,name])
             
 
             # Subdivisions
@@ -181,29 +184,31 @@ def extractContent(soup, orglist_orig, level, is_cmtepage=False):
                                 #                 subdiv = font.string
                                 #             break
 
-                                #find position and name
-                                for tag in link.find_all('tr'):
-                                    if tag.has_attr('valign'):
-                                        if tag.td is not None:
-                                            if tag.td.a is not None:
-                                                if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
-                                                    poss = tag.td.a.get_text('\n').strip().split('\n')
-                                                    names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
+                                tags = link.find_all(is_linktr)
 
-                                                    #no name
-                                                    if names[0] != '-':
-                                                        #discard address in name/pos and replace unicode apostrophe
-                                                        #and discard other unicode chars
-                                                        pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                        if len(poss) > 1:
-                                                            has_leveledup = True
-                                                            orglist[level+1] = poss[1].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                if len(tags) == 0:
+                                    print '\t'.join(['\t'.join(orglist),'MISSING','MISSING'])
+                                    
+                                else:
+                                    #find position and name
+                                    for tag in tags:
+                                        poss = tag.td.a.get_text('\n').strip().split('\n')
+                                        names = tag.td.next_sibling.next_sibling.font.get_text().strip().split('\n')
 
-                                                        name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
-                                                        print '\t'.join(['\t'.join(orglist),pos,name])
+                                        #no name
+                                        if names[0] != '-':
+                                            #discard address in name/pos and replace unicode apostrophe
+                                            #and discard other unicode chars
+                                            pos = poss[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                            if len(poss) > 1:
+                                                has_leveledup = True
+                                                orglist[level+1] = poss[1].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+
+                                            name = names[0].strip().replace( u'\x92', u'\'').encode('ascii', 'ignore')
+                                            print '\t'.join(['\t'.join(orglist),pos,name])
                             
                             # delay 0.1 sec
-                            time.sleep(0.1)
+                            time.sleep(0.5)
 
                             #recursively extract content
                             if has_leveledup:
@@ -211,6 +216,15 @@ def extractContent(soup, orglist_orig, level, is_cmtepage=False):
                             else:
                                 extractContent(soup, orglist, (level+1))
                             
+
+# get position and name in tr
+def is_linktr(tag):
+    if tag.has_attr('valign'):
+        if tag.td is not None:
+            if tag.td.a is not None:
+                if tag.td.a.has_attr('name') and tag.td.a.get_text() is not None:
+                    return True
+    return False    
 
 
 # get div names and links for Others
